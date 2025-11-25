@@ -35,13 +35,7 @@ export default function Login() {
           </div>
 
           <div>
-            <input
-              type="password" // FIXED !!!
-              placeholder="Password *"
-              className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" placeholder="Password *" className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="flex justify-end -mt-2">

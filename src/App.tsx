@@ -5,24 +5,35 @@ import Home from "./pages/Home";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import { AuthProvider } from "./contex/AuthProvider";
 import { ThreadProvider } from "./contex/ThreadProvider";
+import ThreadDetail from "./pages/ThreadDetail";
+import { ProfileProvider } from "./contex/ProfileProvider";
+import { FollowProvider } from "./contex/FollowProvider";
+import FollowsPage from "./pages/FollowsPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ThreadProvider>
-          <Routes>
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<Login />} />
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <ProfileProvider>
+            <FollowProvider>
+              <Routes>
+                <Route path="/register" element={<Register />} />
+                <Route path="/" element={<Login />} />
+                <Route
+                  path="/home"
+                  element={
+                    <ProtectedRoute>
+                      <Home />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="thread/:id" element={<ThreadDetail />} />
+                  <Route path="follows" element={<FollowsPage />} />
+                </Route>
+              </Routes>
+            </FollowProvider>
+          </ProfileProvider>
         </ThreadProvider>
       </AuthProvider>
     </BrowserRouter>

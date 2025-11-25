@@ -21,17 +21,21 @@ export default function Sidebar() {
             <Home /> Home
           </Button>
         </Link>
-
-        <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
-          <Heart /> Follower
-        </Button>
-        <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
-          <UserSearch /> Search
-        </Button>
-
-        <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
-          <CircleUser /> Profile
-        </Button>
+        <Link to="/home/follows?type=followers">
+          <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
+            <Heart /> Follower
+          </Button>
+        </Link>
+        <Link to="/home/search">
+          <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
+            <UserSearch /> Search
+          </Button>
+        </Link>
+        <Link to="/home/profile">
+          <Button variant="ghost" className="w-full justify-start gap-3 text-white hover:bg-amber-50">
+            <CircleUser /> Profile
+          </Button>
+        </Link>
       </div>
 
       <Button className="bg-green-600 hover:bg-green-700 rounded-full font-semibold">

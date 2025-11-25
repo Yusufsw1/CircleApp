@@ -1,26 +1,16 @@
+import type { Thread, Reply } from "@/types/Type";
 import { createContext } from "react";
-
-export type User = {
-  id: number;
-  username: string;
-  name: string;
-  full_name?: string;
-  profile_picture: string | null;
-};
-
-export type Thread = {
-  id: number;
-  content: string;
-  user_id: number;
-  image?: string | null;
-  created_at: string;
-  user: User;
-};
+import type { QueryParams } from "@/services/Services";
 
 export type ThreadContextType = {
   threads: Thread[];
   addThread: (t: Thread) => void;
   loadThreads: () => Promise<void>;
+  getReplies: (queryparams: QueryParams) => Promise<Reply[]>;
+  addReply: (queryparams: QueryParams, formdata: FormData) => Promise<Reply>;
+  getThreadById: (id: number) => Thread | null; // ✅ tambahkan ini
+  loadThreadById: (id: number) => Promise<Thread>;
+  toggleLike: (threadId: number, isLiked: boolean) => Promise<void>;
 };
 
 export const ThreadContext = createContext<ThreadContextType | null>(null);

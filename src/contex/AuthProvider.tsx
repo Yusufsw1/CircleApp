@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { loginService, registerService } from "../services/Services";
 import { useState, useEffect } from "react";
 import { AuthContext, type User } from "./AuthContex";
