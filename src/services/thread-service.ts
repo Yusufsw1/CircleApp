@@ -21,14 +21,49 @@ export async function getThreads(limit: number, currentUserId: number) {
       user: {
         id: thread.user.id,
         username: thread.user.username,
-        name: thread.user.full_name,
-        profile_picture: thread.user.photo_profile,
+        full_name: thread.user.full_name,
+        photo_profile: thread.user.photo_profile,
       },
 
       likes: thread.likes.length,
       reply: thread.replies.length,
-
-      isLiked: thread.likes.some((like) => like.user_id === currentUserId),
+      userLiked: true,
     };
   });
+}
+
+export async function getThreadDetail(threadId: number, currentUserId: number) {
+  const thread = await prisma.threads.findUnique({
+    where: { id: threadId },
+    include: {
+      user: true,
+      likes: true,
+      replies: {
+        include: {
+          user: true,
+        },
+        orderBy: { created_at: "desc" },
+      },
+    },
+  });
+
+  if (!thread) return null;
+
+  return {
+    id: thread.id,
+    content: thread.content,
+    image: thread.image,
+
+    user: {
+      id: thread.user.id,
+      username: thread.user.username,
+      full_name: thread.user.full_name,
+      photo_profile: thread.user.photo_profile,
+    },
+
+    created_at: thread.created_at,
+    likes: thread.likes.length,
+    replies: thread.replies.length,
+    userLiked: true,
+  };
 }

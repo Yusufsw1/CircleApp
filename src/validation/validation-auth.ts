@@ -37,3 +37,28 @@ export const loginSchema = Joi.object({
     "any.required": "Password wajib diisi",
   }),
 });
+
+export const createThreadSchema = Joi.object({
+  content: Joi.string().min(1).max(280).required().messages({
+    "string.empty": "Content tidak boleh kosong",
+    "string.min": "Content minimal 1 karakter",
+    "string.max": "Content maksimal 280 karakter",
+    "any.required": "Content wajib diisi",
+  }),
+});
+
+export const likeThreadSchema = Joi.object({
+  thread_id: Joi.number().integer().required().messages({
+    "any.required": "thread_id wajib diisi",
+    "number.base": "thread_id harus berupa angka",
+  }),
+});
+
+export const createReplySchema = Joi.object({
+  content: Joi.string().min(1).max(280).required().messages({
+    "string.empty": "Reply tidak boleh kosong",
+    "string.min": "Reply minimal 1 karakter",
+    "string.max": "Reply maksimal 280 karakter",
+    "any.required": "Reply wajib diisi",
+  }),
+});

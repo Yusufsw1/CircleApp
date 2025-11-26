@@ -32,15 +32,15 @@ model users {
   threadsUpdated threads[] @relation("ThreadUpdatedBy")
 
   // Follow relations
-  followings following[] @relation("FollowingRelation")
-  followers  following[] @relation("FollowerRelation")
+  followings follow[] @relation("FollowingRelation") // user yang dia follow
+  followers  follow[] @relation("FollowerRelation")  // user yang follow dia
 
   // Likes & replies (muncul otomatis dari model lain)
   replies replies[]
   likes   likes[]
 }
 
-model following {
+model follow {
   id           Int      @id @default(autoincrement())
   following_id Int
   follower_id  Int
@@ -48,8 +48,8 @@ model following {
   updated_at   DateTime @updatedAt
 
   // Relations
-  following_user users @relation("FollowingRelation", fields: [following_id], references: [id])
-  follower_user  users @relation("FollowerRelation", fields: [follower_id], references: [id])
+  follower_user users @relation("FollowingRelation", fields: [follower_id], references: [id])
+  following_user users @relation("FollowerRelation", fields: [following_id], references: [id])
 }
 
 model replies {

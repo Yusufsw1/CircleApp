@@ -1,28 +1,29 @@
 import { NextFunction, Response } from "express";
 import { createThreadService } from "../services/create-service";
-import { io } from "../app";
 import { AuthRequest } from "../middlewares/auth";
+import { createThreadSchema } from "../validation/validation-auth";
+import { io } from "../app";
 
-export const createThreadController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export async function createThreadController(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { content } = req.body;
-    const userId = (req as any).user.id;
-
-    if (!content) {
-      return res.status(500).json({
-        code: 500,
+    const { error, value } = createThreadSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        code: 400,
         status: "error",
-        message: "Invalid thread content",
+        message: error?.details?.[0]?.message || "Invalid request",
       });
     }
 
-    const image: string | null = req.file ? `uploads/${req.file.filename}` : null;
+    const userId = req.user.id;
+    const image = req.file ? `uploads/${req.file.filename}` : null;
 
     const result = await createThreadService({
-      content,
+      content: value.content,
       image,
       user_id: userId,
     });
+
     io.emit("new-result", result);
 
     return res.status(200).json({
@@ -49,7 +50,7 @@ export const createThreadController = async (req: AuthRequest, res: Response, ne
     return res.status(500).json({
       code: 500,
       status: "error",
-      message: "Invalid thread content",
+      message: "Gagal membuat thread",
     });
   }
-};
+}

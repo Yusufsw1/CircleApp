@@ -10,10 +10,8 @@ dotenv.config();
 
 const app = express();
 
-// --- buat http server (WAJIB untuk socket.io) ---
 const server = http.createServer(app);
 
-// --- init socket.io ---
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -21,7 +19,6 @@ const io = new Server(server, {
   },
 });
 
-// socket connection
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -39,13 +36,10 @@ app.use(
   })
 );
 
-// serve static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// routes
 app.use("/api/v1/auth", authRoutes);
 
-// --- PENTING: pakai "server.listen", bukan app.listen ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
