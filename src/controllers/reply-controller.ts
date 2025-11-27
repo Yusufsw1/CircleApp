@@ -4,6 +4,7 @@ import { getRepliesByThread } from "../services/reply-service";
 import prisma from "../connection/client";
 import { createReplySchema } from "../validation/validation-auth";
 import { io } from "../app";
+import redis from "../connection/redis";
 
 export async function getRepliesController(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -17,7 +18,25 @@ export async function getRepliesController(req: AuthRequest, res: Response, next
         message: "thread_id tidak boleh kosong",
       });
     }
+
+    const cacheKey = `replies:${threadId}:limit:${limit}`;
+
+    // 👉 1. Cek cache dulu
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      console.log("THREAD DETAIL FROM CACHE");
+      return res.status(200).json({
+        code: 200,
+        status: "success",
+        message: "Get Data Thread Successfully (from cache)",
+        data: { replies: JSON.parse(cached) },
+      });
+    }
+
     const replies = await getRepliesByThread(threadId, limit);
+
+    // 👉 3. Simpan ke Redis
+    await redis.set(cacheKey, JSON.stringify(replies), { EX: 60 });
 
     return res.status(200).json({
       code: 200,
@@ -44,6 +63,8 @@ export async function createReplyController(req: Request, res: Response) {
         message: "thread_id harus berupa angka dan tidak boleh kosong",
       });
     }
+
+    await redis.del(`replies:${threadIdNum}:limit:25`);
 
     const { error, value } = createReplySchema.validate(req.body);
     if (error) {
@@ -78,20 +99,13 @@ export async function createReplyController(req: Request, res: Response) {
       user: {
         id: reply.user.id,
         username: reply.user.username,
-        name: reply.user.full_name, // mapping disini
+        full_name: reply.user.full_name, // mapping disini
         profile_picture: reply.user.photo_profile,
       },
     };
     const totalReplies = await prisma.replies.count({
       where: { thread_id: Number(thread_id) },
     });
-
-    // const io = getIO();
-    // io.emit("new-reply", {
-    //   reply: replyData,
-    //   thread_id: Number(thread_id),
-    //   replies_count: totalReplies,
-    // });
 
     io.emit("new-reply", {
       reply: replyData,

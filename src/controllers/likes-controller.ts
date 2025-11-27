@@ -2,13 +2,14 @@
 import { Request, Response } from "express";
 import prisma from "../connection/client";
 import { AuthRequest } from "../middlewares/auth";
+import { io } from "../app";
 
 export async function likeThread(req: AuthRequest, res: Response) {
   try {
     const userId = req.user.id;
-    const { thread_id } = req.body;
+    const threadId = Number(req.body.thread_id);
 
-    if (!thread_id) {
+    if (!threadId) {
       return res.status(400).json({
         code: 400,
         status: "error",
@@ -16,11 +17,9 @@ export async function likeThread(req: AuthRequest, res: Response) {
       });
     }
 
-    const threadIdNum = Number(thread_id);
-
-    // Validasi apakah thread exists
+    // cek apakah thread ada
     const thread = await prisma.threads.findUnique({
-      where: { id: threadIdNum },
+      where: { id: threadId },
     });
 
     if (!thread) {
@@ -31,53 +30,58 @@ export async function likeThread(req: AuthRequest, res: Response) {
       });
     }
 
-    // Cek apakah user sudah like thread ini
-    const existingLike = await prisma.likes.findFirst({
-      where: {
-        user_id: userId,
-        thread_id: threadIdNum,
-      },
+    // cek apakah user sudah like
+    const likeExist = await prisma.likes.findFirst({
+      where: { user_id: userId, thread_id: threadId },
     });
 
-    let action: string;
-    let likeResult;
+    let action = "";
+    let likeId = null;
 
-    if (existingLike) {
-      // Jika sudah like, maka UNLIKE (hapus like)
+    if (likeExist) {
+      // UNLIKE
       await prisma.likes.delete({
-        where: { id: existingLike.id },
+        where: { id: likeExist.id },
       });
       action = "unliked";
     } else {
-      // Jika belum like, maka LIKE (buat like baru)
-      likeResult = await prisma.likes.create({
+      // LIKE
+      const newLike = await prisma.likes.create({
         data: {
           user_id: userId,
-          thread_id: threadIdNum,
+          thread_id: threadId,
           created_by: userId,
         },
       });
+      likeId = newLike.id;
       action = "liked";
     }
 
-    // Hitung total likes untuk thread ini
+    // total like terbaru
     const totalLikes = await prisma.likes.count({
-      where: { thread_id: threadIdNum },
+      where: { thread_id: threadId },
     });
 
-    return res.status(200).json({
+    io.emit("threadUpdated", {
+      threadId,
+      action,
+      userId,
+      is_liked: action === "liked",
+      total_likes: totalLikes,
+    });
+
+    return res.json({
       code: 200,
       status: "success",
-      message: `Thread berhasil di${action}`,
+      message: `Thread ${action}`,
       data: {
-        action: action,
+        action,
         is_liked: action === "liked",
-        like_id: likeResult?.id || null,
+        like_id: likeId,
         total_likes: totalLikes,
       },
     });
-  } catch (error) {
-    console.error("Like/Unlike error:", error);
+  } catch (err) {
     return res.status(500).json({
       code: 500,
       status: "error",

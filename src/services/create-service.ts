@@ -1,4 +1,5 @@
 import prisma from "../connection/client";
+import redis from "../connection/redis";
 
 interface CreateThreadInput {
   user_id: number;
@@ -7,7 +8,7 @@ interface CreateThreadInput {
 }
 
 export async function createThreadService(data: CreateThreadInput) {
-  return await prisma.threads.create({
+  const thread = await prisma.threads.create({
     data: {
       content: data.content,
       image: data.image ?? null,
@@ -30,4 +31,13 @@ export async function createThreadService(data: CreateThreadInput) {
       },
     },
   });
+  const keys = await redis.keys("threads:*");
+  if (keys.length > 0) {
+    await redis.del(keys);
+  }
+
+  // Jika mau aman, hapus juga cache detail thread baru (opsional)
+  await redis.del(`thread-detail:${thread.id}:user=${data.user_id}`);
+
+  return thread;
 }
