@@ -42,7 +42,7 @@ export default function Sidebar() {
         <PenSquare className="mr-2" /> Create Post
       </Button>
 
-      <Button variant="ghost" className="text-white  hover:bg-red-800 mt-auto" onClick={logout}>
+      <Button variant="ghost" className="text-white  hover:bg-red-800 mt-auto " onClick={logout}>
         <LogOut className="mr-2" /> Logout
       </Button>
     </div>

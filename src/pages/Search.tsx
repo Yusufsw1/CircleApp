@@ -5,6 +5,7 @@ import { useState } from "react";
 import api from "@/api/Axios";
 import { useFollows } from "@/hooks/useFollow";
 import { useProfile } from "@/hooks/useProfile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -52,7 +53,10 @@ export default function Search() {
             {results.map((u) => (
               <div key={u.id} className="flex items-center justify-between p-2 hover:bg-neutral-800 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <img src={`http://localhost:3000/${u.photo_profile}`} className="w-10 h-10 rounded-full object-cover" />
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={`http://localhost:3000/${u.photo_profile}`} className="object-cover" />
+                    <AvatarFallback className="text-sm bg-neutral-800">{u.username[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="text-white">{u.full_name}</p>
                     <p className="text-neutral-400">@{u.username}</p>
@@ -60,7 +64,13 @@ export default function Search() {
                 </div>
 
                 {profile?.id !== u.id && (
-                  <Button onClick={() => handleToggle(u.id, !!u.is_following)} className={`${u.is_following ? "bg-neutral-800 hover:bg-neutral-700" : "bg-white text-black hover:bg-neutral-300"}`}>
+                  <Button
+                    onClick={() => handleToggle(u.id, !!u.is_following)}
+                    variant={u.is_following ? "outline" : "default"}
+                    className={`rounded-full text-xs font-medium transition-all ${
+                      u.is_following ? "border-neutral-600 text-white bg-transparent hover:bg-red-500/10 hover:border-red-500 hover:text-red-500" : "bg-white text-black hover:bg-neutral-200"
+                    }`}
+                  >
                     {u.is_following ? "Following" : "Follow"}
                   </Button>
                 )}

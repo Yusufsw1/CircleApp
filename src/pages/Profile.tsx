@@ -49,15 +49,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6   border-neutral-800">
       {/* Cover Photo */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-6 ">
         <Button variant="ghost" className="p-2 hover:bg-gray-800 rounded-full transition-colors duration-200" asChild>
           <Link to="/home" className="flex items-center gap-2 text-white hover:text-gray-300">
             <ArrowLeft className="w-6 h-6" />
           </Link>
         </Button>
-        <h1 className="text-xl font-bold">Status</h1>
+        <h1 className="text-xl font-bold">Profile</h1>
       </div>
       <div className="h-48 bg-gradient-to-r from-amber-400 to-amber-700 relative">
         {/* Profile Picture Overlay */}
@@ -112,10 +112,10 @@ export default function ProfilePage() {
               My Threads
             </button>
             <button
-              onClick={() => setActiveTab("replies")}
-              className={`py-4 px-1 border-b-2 font-medium text-lg transition-colors ${activeTab === "replies" ? "border-blue-500 text-white" : "border-transparent text-neutral-400 hover:text-white"}`}
+              onClick={() => setActiveTab("media")}
+              className={`py-4 px-1 border-b-2 font-medium text-lg transition-colors ${activeTab === "media" ? "border-blue-500 text-white" : "border-transparent text-neutral-400 hover:text-white"}`}
             >
-              Replies
+              Media
             </button>
           </nav>
         </div>
@@ -198,10 +198,10 @@ export default function ProfilePage() {
           </>
         )}
 
-        {activeTab === "replies" && (
+        {activeTab === "media" && (
           <Card className="bg-neutral-900 border-neutral-800">
             <CardContent className="p-8 text-center">
-              <p className="text-neutral-400 text-lg">No replies yet.</p>
+              <p className="text-neutral-400 text-lg">No media yet.</p>
             </CardContent>
           </Card>
         )}

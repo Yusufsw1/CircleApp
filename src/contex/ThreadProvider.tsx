@@ -45,51 +45,15 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
 
   const toggleLike = async (threadId: number, isLiked: boolean) => {
     try {
-      // Optimistic update - langsung update UI tanpa tunggu response
-      setThreads((prev) =>
-        prev.map((thread) =>
-          thread.id === threadId
-            ? {
-                ...thread,
-                userLiked: !isLiked,
-                likes: isLiked ? thread.likes - 1 : thread.likes + 1,
-              }
-            : thread
-        )
-      );
-
-      // Kirim request ke backend
       const response = await likeThreadService(threadId);
 
-      // Jika ada error di backend, rollback
-      if (response.code !== 200) {
-        setThreads((prev) =>
-          prev.map((thread) =>
-            thread.id === threadId
-              ? {
-                  ...thread,
-                  userLiked: isLiked,
-                  likes: isLiked ? thread.likes : thread.likes - 1,
-                }
-              : thread
-          )
-        );
-        console.error("Like error:", response.message);
+      if (response.code === 200) {
+        const { is_liked, total_likes } = response.data;
+
+        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, userLiked: is_liked, likes: total_likes } : t)));
       }
-    } catch (error) {
-      console.error("Like failed:", error);
-      // Rollback jika error
-      setThreads((prev) =>
-        prev.map((thread) =>
-          thread.id === threadId
-            ? {
-                ...thread,
-                userLiked: isLiked,
-                likes: isLiked ? thread.likes : thread.likes - 1,
-              }
-            : thread
-        )
-      );
+    } catch (err) {
+      console.error("Like error:", err);
     }
   };
 
@@ -99,8 +63,17 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
       setThreads((prev) => [t, ...prev]);
     });
 
-    socket.on("like-updated", (data: { thread_id: number; total_likes: number; user_id: number }) => {
-      setThreads((prev) => prev.map((thread) => (thread.id === data.thread_id ? { ...thread, likes: data.total_likes } : thread)));
+    socket.on("threadUpdated", (data) => {
+      setThreads((prev) =>
+        prev.map((thread) =>
+          thread.id === data.threadId
+            ? {
+                ...thread,
+                likes: data.total_likes,
+              }
+            : thread
+        )
+      );
     });
 
     socket.on("new-reply", (data: { thread_id: number; replies_count: number }) => {
@@ -109,7 +82,7 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       socket.off("new-result");
-      socket.off("like-updated");
+      socket.off("threadUpdated");
       socket.off("new-reply");
     };
   }, []);

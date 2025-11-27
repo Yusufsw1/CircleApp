@@ -39,8 +39,8 @@ export default function Suggested() {
             <div key={s.id} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={`http://localhost:3000/${s.photo_profile}`} />
-                  <AvatarFallback>{s.username[0].toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={`http://localhost:3000/${s.photo_profile}`} className="object-cover" />
+                  <AvatarFallback className="text-sm bg-neutral-800">{s.username[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium">{s.full_name}</p>
@@ -49,7 +49,13 @@ export default function Suggested() {
               </div>
 
               {profile?.id !== s.id && (
-                <Button onClick={() => handleToggle(s.id, !!s.is_following)} className={`${s.is_following ? "bg-neutral-800 hover:bg-neutral-700" : "bg-white text-black hover:bg-neutral-300"}`}>
+                <Button
+                  onClick={() => handleToggle(s.id, !!s.is_following)}
+                  variant={s.is_following ? "outline" : "default"}
+                  className={`rounded-full text-xs font-medium transition-all ${
+                    s.is_following ? "border-neutral-600 text-white bg-transparent hover:bg-red-500/10 hover:border-red-500 hover:text-red-500" : "bg-white text-black hover:bg-neutral-200"
+                  }`}
+                >
                   {s.is_following ? "Following" : "Follow"}
                 </Button>
               )}

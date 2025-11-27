@@ -4,7 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { Heart, MessageCircle, MessageSquareText } from "lucide-react";
+import { Heart, MessageCircle, Image as ImageIcon } from "lucide-react";
 import { useThread } from "@/hooks/useThread";
 
 export default function Feed() {
@@ -13,25 +13,17 @@ export default function Feed() {
   const [processingLikes, setProcessingLikes] = useState<number[]>([]);
 
   useEffect(() => {
-    loadThreads(); // 🔥 AMBIL THREAD DARI CONTEXT
+    loadThreads();
 
     const socket = io("http://localhost:3000");
-
-    socket.on("new-result", (data) => {
-      loadThreads(); // ⬅️ auto refresh feed
-    });
-
-    socket.on("like-updated", (data) => {
-      console.log("Like updated:", data);
-    });
+    socket.on("new-result", loadThreads);
+    socket.on("like-updated", console.log);
 
     return () => socket.disconnect();
   }, []);
 
   const handleLikeClick = async (threadId: number, isCurrentlyLiked: boolean) => {
-    // Cegah multiple clicks
     if (processingLikes.includes(threadId)) return;
-
     setProcessingLikes((prev) => [...prev, threadId]);
 
     try {
@@ -42,56 +34,61 @@ export default function Feed() {
       setProcessingLikes((prev) => prev.filter((id) => id !== threadId));
     }
   };
-  console.log(threads);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {threads.map((t) => (
-        <Card key={t.id} className="bg-neutral-900 border-neutral-800 text-white">
+        <Card key={t.id} className="bg-neutral-900 border-neutral-800 text-white hover:bg-neutral-800/50 transition-colors">
           <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <Avatar className="w-10 h-10">
+            {/* Header */}
+            <div className="flex items-start gap-3 mb-3">
+              <Avatar className="w-8 h-8 border border-neutral-700">
                 <AvatarImage src={`http://localhost:3000/${t.user.photo_profile}`} />
-                <AvatarFallback>{t.user.username[0].toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-xs">{t.user.username[0].toUpperCase()}</AvatarFallback>
               </Avatar>
 
-              <div>
-                <p className="font-semibold">{t.user.full_name}</p>
-                <p className="text-neutral-400 text-xs">@{t.user.username}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm truncate">{t.user.full_name}</p>
+                  <span className="text-neutral-400">•</span>
+                  <p className="text-neutral-400 text-xs truncate">@{t.user.username}</p>
+                </div>
+                <p className="text-neutral-500 text-xs mt-0.5">{new Date(t.created_at).toLocaleString()}</p>
               </div>
             </div>
 
-            <p className="text-neutral-200 mb-4 mt-6">{t.content}</p>
+            {/* Content */}
+            <div className="ml-11">
+              <p className="text-neutral-200 text-sm mb-3 leading-relaxed">{t.content}</p>
 
-            {t.image && (
-              <div className="m-5">
-                <img src={`http://localhost:3000/${t.image}`} onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
-              </div>
-            )}
-            <div className="flex items-center justify-between text-neutral-400 text-sm">
-              <div className="flex items-center gap-1">
-                <p className="text-neutral-500 text-xs mb-3">{new Date(t.created_at).toLocaleString()}</p>
-              </div>
-              <div className="flex items-center gap-4 text-neutral-400 text-sm">
+              {t.image && (
+                <div className="mb-3 rounded-lg overflow-hidden border border-neutral-700">
+                  <img src={`http://localhost:3000/${t.image}`} alt="Thread image" className="w-full h-auto max-h-80 object-cover" onError={(e) => ((e.target as HTMLImageElement).style.display = "none")} />
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-4 text-neutral-400">
                 <button
                   onClick={() => handleLikeClick(t.id, t.userLiked)}
                   disabled={processingLikes.includes(t.id)}
-                  className={`flex items-center gap-1 transition-colors ${processingLikes.includes(t.id) ? "opacity-50 cursor-not-allowed" : "hover:text-red-400"}`}
+                  className={`flex items-center gap-1.5 transition-colors ${processingLikes.includes(t.id) ? "opacity-50 cursor-not-allowed" : "hover:text-red-400"}`}
                 >
-                  <Heart className={t.userLiked ? "text-red-500 fill-red-500" : "text-gray-400"} size={20} />
-                  <span>{t.likes}</span>
+                  <Heart className={t.userLiked ? "text-red-500 fill-red-500" : "text-current"} size={18} />
+                  <span className="text-xs">{t.likes}</span>
                 </button>
-                <div className="flex items-center gap-1">
-                  <MessageCircle size={18} onClick={() => navigate(`thread/${t.id}`)} />
-                  <span>{t.reply}</span>
-                </div>
+
+                <button onClick={() => navigate(`thread/${t.id}`)} className="flex items-center gap-1.5 hover:text-blue-400 transition-colors">
+                  <MessageCircle size={18} />
+                  <span className="text-xs">{t.reply}</span>
+                </button>
               </div>
             </div>
           </CardContent>
         </Card>
       ))}
 
-      <Separator className="my-4 bg-neutral-800" />
+      <Separator className="bg-neutral-800" />
     </div>
   );
 }

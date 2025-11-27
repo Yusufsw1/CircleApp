@@ -8,60 +8,64 @@ import { useThread } from "@/hooks/useThread";
 import type { QueryParams } from "@/services/Services";
 
 export default function ReplayDetail() {
-  //   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [replay, setReplay] = useState<Reply[]>([]);
   const { id } = useParams<{ id: string }>();
   const { getReplies } = useThread();
   const thread_id = parseInt(id!, 10);
 
   useEffect(() => {
-    const params: QueryParams = {
-      thread_id,
-    };
+    const params: QueryParams = { thread_id };
 
     const initializeData = async () => {
       const result = await getReplies(params);
       setReplay(result);
-      console.log(result);
     };
 
     initializeData();
-    const socket = io("http://localhost:3000");
 
+    const socket = io("http://localhost:3000");
     socket.on("new-reply", (data) => {
       if (data.thread_id === thread_id) {
         setReplay((prev) => [data.reply, ...prev]);
       }
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => socket.disconnect();
   }, []);
   console.log(replay);
 
   return (
-    <div className="space-y-3  border-neutral-700">
+    <div className="space-y-3">
       {replay.map((r) => (
-        <Card key={r.id} className="bg-neutral-800 border-neutral-700 text-white">
+        <Card key={r.id} className="bg-neutral-900 border-neutral-800 text-white hover:bg-neutral-800/50 transition-colors">
           <CardContent className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <Avatar className="w-8 h-8  ">
-                <AvatarImage className="" src={`http://localhost:3000/${r.user.profile_picture}`} />
-                <AvatarFallback>{r.user.full_name[0].toUpperCase()}</AvatarFallback>
+            {/* Header */}
+            <div className="flex items-start gap-3 mb-3">
+              <Avatar className="w-7 h-7 border border-neutral-700">
+                <AvatarImage src={`http://localhost:3000/${r.user.profile_picture}`} />
+                <AvatarFallback className="text-xs">{r.user.full_name}</AvatarFallback>
               </Avatar>
-              <div className="">
-                <p className=" font-semibold text-sm">{r.user.full_name}</p>
-                <p className="text-neutral-400 text-xs">@{r.user.username}</p>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-sm truncate">{r.user.full_name}</p>
+                  <span className="text-neutral-400">•</span>
+                  <p className="text-neutral-400 text-xs truncate">@{r.user.username}</p>
+                </div>
+                <p className="text-neutral-500 text-xs mt-0.5">{new Date(r.created_at).toLocaleString()}</p>
               </div>
             </div>
-            <p className="text-neutral-200 mb-4 mt-6 text-md">{r.content}</p>
-            <div className="">
+
+            {/* Content */}
+            <div className="ml-10">
+              <p className="text-neutral-200 text-sm mb-3 leading-relaxed">{r.content}</p>
+
               {r.image && (
-                <div className="m-5">
+                <div className="mb-2 rounded-lg overflow-hidden border border-neutral-700">
                   <img
-                    className=""
                     src={`http://localhost:3000/${r.image}`}
+                    alt="Reply image"
+                    className="w-full h-auto max-h-64 object-cover"
                     onError={(e) => {
                       console.error("Gagal memuat Gambar", r.image);
                       (e.target as HTMLImageElement).style.display = "none";
@@ -69,7 +73,6 @@ export default function ReplayDetail() {
                   />
                 </div>
               )}
-              <p className="text-neutral-500 text-xs">{new Date(r.created_at).toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>

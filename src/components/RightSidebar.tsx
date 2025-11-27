@@ -19,7 +19,7 @@ export default function RightSidebar() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 fixed">
       <Card className="bg-neutral-900 border-neutral-800 text-white">
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-4">
