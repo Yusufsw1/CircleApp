@@ -1,92 +1,7 @@
-// import { useEffect, useState } from "react";
-// import { ThreadContext } from "./ThreadContex";
-// import type { Thread } from "@/types/Type";
-// import { createReply, getAllThreads, getRepliesByThreadId, likeThreadService, unlikeThreadService, type QueryParams } from "@/services/Services";
-// import { io } from "socket.io-client";
-
-// const socket = io("http://localhost:3000"); // backend socket
-
-// export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [threads, setThreads] = useState<Thread[]>([]);
-//   const user = JSON.parse(localStorage.getItem("user") || "{}");
-
-//   const getThreadById = (id: number) => {
-//     return threads.find((t) => t.id === id) || null;
-//   };
-
-//   const loadThreads = async () => {
-//     const res = await getAllThreads();
-//     setThreads(res.data.data.threads);
-//     console.log("🎯 Setting threads dengan res.data.data langsung");
-
-//     if (res.data.data.length > 0) {
-//       console.log("👤 User data dari API:", res.data.data[0].user);
-//     }
-//   };
-
-//   const addThread = (t: Thread) => {
-//     setThreads((prev) => [...prev, t]);
-//   };
-
-const getReplies = async (queryparams: QueryParams) => {
-  const result = await getRepliesByThreadId(queryparams);
-  console.log(result);
-  return result;
-};
-
-//   const addReply = async (queryparams: QueryParams, formdata: FormData) => {
-//     const result = await createReply(queryparams, formdata);
-//     console.log(result);
-//     // setReply(result);
-//     return result;
-//   };
-
-//   const handleLike = async (threadId: number) => {
-//     const res = await likeThreadService(threadId);
-
-//     setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, likes: res.data.likes, userLiked: true } : t)));
-//   };
-
-//   const handleUnlike = async (threadId: number) => {
-//     const res = await unlikeThreadService(threadId);
-
-//     setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, likes: res.data.likes, userLiked: false } : t)));
-//   };
-
-//   useEffect(() => {
-//     const fetchThreads = async () => {
-//       try {
-//         await loadThreads();
-//       } catch (err) {
-//         console.error("Gagal load threads", err);
-//       }
-//     };
-//     fetchThreads();
-//   }, []);
-
-//   useEffect(() => {
-//     socket.on("new-result", (t: Thread) => {
-//       setThreads((prev) => [t, ...prev]);
-//     });
-
-//     socket.on("like-updated", (data) => {
-//       setThreads((prev) => prev.map((t) => (t.id === data.thread_id ? { ...t, likes: data.likes } : t)));
-//     });
-
-//     socket.on("new-reply", (data) => {
-//       setThreads((prev) => prev.map((t) => (t.id === data.thread_id ? { ...t, replies: t.replies + 1 } : t)));
-//     });
-
-//     return () => socket.off();
-//   }, []);
-
-//   return <ThreadContext.Provider value={{ threads, addThread, loadThreads, getReplies, getThreadById, addReply, handleLike, handleUnlike }}>{children}</ThreadContext.Provider>;
-// };
-
 import { useEffect, useState, useCallback } from "react";
 import { ThreadContext } from "./ThreadContex";
 import type { Thread } from "@/types/Type";
-import { getAllThreads, getThreadById as apiGetThreadById, getRepliesByThreadId, createReply, type QueryParams } from "@/services/Services";
+import { getAllThreads, getThreadById as apiGetThreadById, getRepliesByThreadId, createReply, type QueryParams, likeThreadService } from "@/services/Services";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:3000");
@@ -105,6 +20,11 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
     },
     [threads]
   );
+  const getReplies = async (queryparams: QueryParams) => {
+    const result = await getRepliesByThreadId(queryparams);
+    console.log(result);
+    return result;
+  };
 
   const loadThreadById = useCallback(
     async (id: number) => {
@@ -125,17 +45,51 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
 
   const toggleLike = async (threadId: number, isLiked: boolean) => {
     try {
-      if (isLiked) {
-        const res = await unlikeThreadService(threadId);
+      // Optimistic update - langsung update UI tanpa tunggu response
+      setThreads((prev) =>
+        prev.map((thread) =>
+          thread.id === threadId
+            ? {
+                ...thread,
+                userLiked: !isLiked,
+                likes: isLiked ? thread.likes - 1 : thread.likes + 1,
+              }
+            : thread
+        )
+      );
 
-        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, likes: res.totalLikes, userLiked: false } : t)));
-      } else {
-        const res = await likeThreadService(threadId);
+      // Kirim request ke backend
+      const response = await likeThreadService(threadId);
 
-        setThreads((prev) => prev.map((t) => (t.id === threadId ? { ...t, likes: res.totalLikes, userLiked: true } : t)));
+      // Jika ada error di backend, rollback
+      if (response.code !== 200) {
+        setThreads((prev) =>
+          prev.map((thread) =>
+            thread.id === threadId
+              ? {
+                  ...thread,
+                  userLiked: isLiked,
+                  likes: isLiked ? thread.likes : thread.likes - 1,
+                }
+              : thread
+          )
+        );
+        console.error("Like error:", response.message);
       }
-    } catch (err) {
-      console.error("Toggle like error:", err);
+    } catch (error) {
+      console.error("Like failed:", error);
+      // Rollback jika error
+      setThreads((prev) =>
+        prev.map((thread) =>
+          thread.id === threadId
+            ? {
+                ...thread,
+                userLiked: isLiked,
+                likes: isLiked ? thread.likes : thread.likes - 1,
+              }
+            : thread
+        )
+      );
     }
   };
 
@@ -145,12 +99,12 @@ export const ThreadProvider = ({ children }: { children: React.ReactNode }) => {
       setThreads((prev) => [t, ...prev]);
     });
 
-    socket.on("like-updated", (data: { thread_id: number; likes: number }) => {
-      setThreads((prev) => prev.map((t) => (t.id === data.thread_id ? { ...t, likes: data.likes } : t)));
+    socket.on("like-updated", (data: { thread_id: number; total_likes: number; user_id: number }) => {
+      setThreads((prev) => prev.map((thread) => (thread.id === data.thread_id ? { ...thread, likes: data.total_likes } : thread)));
     });
 
-    socket.on("new-reply", (data: { thread_id: number }) => {
-      setThreads((prev) => prev.map((t) => (t.id === data.thread_id ? { ...t, replies: t.replies + 1 } : t)));
+    socket.on("new-reply", (data: { thread_id: number; replies_count: number }) => {
+      setThreads((prev) => prev.map((thread) => (thread.id === data.thread_id ? { ...thread, reply: data.replies_count } : thread)));
     });
 
     return () => {

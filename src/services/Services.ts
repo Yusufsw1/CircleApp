@@ -89,3 +89,22 @@ export async function getSuggestedService() {
   const res = await api.get("/suggested");
   return res.data.data;
 }
+
+export const likeThreadService = async (thread_id: number) => {
+  const res = await api.post("/like", { thread_id });
+  return res.data;
+};
+
+export const getLikeStatusService = async (thread_id: number) => {
+  const res = await api.get("/like/status", {
+    params: { thread_id },
+  });
+  return res.data;
+};
+
+export const getUserThreadsService = async (userId?: number) => {
+  // Jika tidak ada userId, ambil thread user yang login
+  const url = userId ? `/user/${userId}/threads` : "/profile/threads";
+  const res = await api.get(url);
+  return res.data;
+};

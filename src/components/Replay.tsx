@@ -2,7 +2,7 @@ import type { Reply } from "@/types/Type";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { io } from "socket.io-client";
 import { useThread } from "@/hooks/useThread";
 import type { QueryParams } from "@/services/Services";
@@ -41,31 +41,34 @@ export default function ReplayDetail() {
   console.log(replay);
 
   return (
-    <div className="space-y-3 pl-4 border-l border-neutral-700">
+    <div className="space-y-3  border-neutral-700">
       {replay.map((r) => (
         <Card key={r.id} className="bg-neutral-800 border-neutral-700 text-white">
-          <CardContent className="flex gap-3">
-            <Avatar className="w-8 h-8  ">
-              <AvatarImage className="rounded-full object-cover" src={`http://localhost:3000/${r.user.profile_picture}`} />
-              <AvatarFallback>{r.user.full_name}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium text-sm">{r.user.username}</p>
-              <p className="text-neutral-300 text-sm">{r.content}</p>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar className="w-8 h-8  ">
+                <AvatarImage className="" src={`http://localhost:3000/${r.user.profile_picture}`} />
+                <AvatarFallback>{r.user.full_name[0].toUpperCase()}</AvatarFallback>
+              </Avatar>
               <div className="">
-                {r.image && (
-                  <div className="m-5">
-                    <img
-                      className=""
-                      src={`http://localhost:3000/${r.image}`}
-                      onError={(e) => {
-                        console.error("Gagal memuat Gambar", r.image);
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                )}
+                <p className=" font-semibold text-sm">{r.user.full_name}</p>
+                <p className="text-neutral-400 text-xs">@{r.user.username}</p>
               </div>
+            </div>
+            <p className="text-neutral-200 mb-4 mt-6 text-md">{r.content}</p>
+            <div className="">
+              {r.image && (
+                <div className="m-5">
+                  <img
+                    className=""
+                    src={`http://localhost:3000/${r.image}`}
+                    onError={(e) => {
+                      console.error("Gagal memuat Gambar", r.image);
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
               <p className="text-neutral-500 text-xs">{new Date(r.created_at).toLocaleString()}</p>
             </div>
           </CardContent>

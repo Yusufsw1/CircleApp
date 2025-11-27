@@ -8,6 +8,7 @@ export type User = {
   bio?: string;
   follower_count: number;
   following_count: number;
+  threads_count?: number;
 };
 
 export type Thread = {
@@ -16,9 +17,9 @@ export type Thread = {
   user_id: number;
   image?: string | null;
   created_at: string;
-  replies: number;
   likes: number;
   user: User;
+  reply: number;
   userLiked: boolean;
 };
 
@@ -47,3 +48,15 @@ export type FollowItem = {
   photo_profile?: string | null;
   is_following?: boolean;
 };
+
+export interface LikeResponse {
+  code: number;
+  status: string;
+  message: string;
+  data: {
+    action: "liked" | "unliked";
+    is_liked: boolean;
+    like_id: number | null;
+    total_likes: number;
+  };
+}

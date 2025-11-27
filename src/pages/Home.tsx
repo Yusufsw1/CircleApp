@@ -9,8 +9,10 @@ export default function Home() {
 
   const isThreadDetail = location.pathname.includes("/thread/");
   const isFollowsPage = location.pathname.includes("/follows");
+  const isSearch = location.pathname.includes("/search");
+  const isprofile = location.pathname.includes("/profile");
 
-  const hideMainFeed = isThreadDetail || isFollowsPage;
+  const hideMainFeed = isThreadDetail || isFollowsPage || isSearch || isprofile;
   return (
     <div className="grid grid-cols-12 min-h-screen bg-neutral-950 text-white">
       <div className="col-span-2 p-4 border-r border-neutral-800 posi ">

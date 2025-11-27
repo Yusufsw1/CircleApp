@@ -12,5 +12,4 @@ export type ThreadContextType = {
   loadThreadById: (id: number) => Promise<Thread>;
   toggleLike: (threadId: number, isLiked: boolean) => Promise<void>;
 };
-
 export const ThreadContext = createContext<ThreadContextType | null>(null);

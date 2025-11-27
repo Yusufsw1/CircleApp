@@ -9,7 +9,8 @@ import ThreadDetail from "./pages/ThreadDetail";
 import { ProfileProvider } from "./contex/ProfileProvider";
 import { FollowProvider } from "./contex/FollowProvider";
 import FollowsPage from "./pages/FollowsPage";
-
+import Profile from "./pages/Profile";
+import Search from "./pages/Search";
 export default function App() {
   return (
     <BrowserRouter>
@@ -30,6 +31,8 @@ export default function App() {
                 >
                   <Route path="thread/:id" element={<ThreadDetail />} />
                   <Route path="follows" element={<FollowsPage />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="search" element={<Search />} />
                 </Route>
               </Routes>
             </FollowProvider>

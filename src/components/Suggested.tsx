@@ -1,7 +1,7 @@
 import { getSuggestedService } from "@/services/Services";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useFollows } from "@/hooks/useFollow";
 import { useProfile } from "@/hooks/useProfile";

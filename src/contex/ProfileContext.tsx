@@ -1,9 +1,11 @@
-import type { User } from "@/types/Type";
+import type { Thread, User } from "@/types/Type";
 import { createContext } from "react";
 
 type ProfileContextType = {
   profile: User | null;
+  userThreads: Thread[];
   refreshProfile: () => Promise<void>;
+  refreshUserThreads: () => Promise<void>;
   updateProfile: (formData: FormData) => Promise<any>;
 };
 
