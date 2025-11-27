@@ -6,7 +6,11 @@ export async function getThreads(limit: number, currentUserId: number) {
     orderBy: { created_at: "desc" },
     include: {
       user: true,
-      likes: true,
+      likes: {
+        where: {
+          user_id: currentUserId, // Filter likes by current user
+        },
+      },
       replies: true,
     },
   });
@@ -27,7 +31,7 @@ export async function getThreads(limit: number, currentUserId: number) {
 
       likes: thread.likes.length,
       reply: thread.replies.length,
-      userLiked: true,
+      userLiked: thread.likes.length > 0,
     };
   });
 }
@@ -37,7 +41,11 @@ export async function getThreadDetail(threadId: number, currentUserId: number) {
     where: { id: threadId },
     include: {
       user: true,
-      likes: true,
+      likes: {
+        where: {
+          user_id: currentUserId, // Filter likes by current user
+        },
+      },
       replies: {
         include: {
           user: true,
@@ -64,6 +72,6 @@ export async function getThreadDetail(threadId: number, currentUserId: number) {
     created_at: thread.created_at,
     likes: thread.likes.length,
     replies: thread.replies.length,
-    userLiked: true,
+    userLiked: thread.likes.length > 0,
   };
 }

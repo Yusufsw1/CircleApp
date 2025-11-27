@@ -39,6 +39,7 @@ export async function followUserController(req: any, res: Response) {
     // emit two events with explicit type so frontend can update correct counters
     io.emit("follow-changed", { user_id: follower_id, type: "following", ...countsForActor });
     io.emit("follow-changed", { user_id: Number(followed_user_id), type: "followers", ...countsForTarget });
+    io.emit("suggested-update", { changed: true });
 
     return res.status(200).json({ status: "success", message: "You have successfully followed the user.", data: { user_id: followed_user_id, is_following: true } });
   } catch (err: any) {
@@ -59,6 +60,7 @@ export async function unfollowUserController(req: any, res: Response) {
 
     io.emit("follow-changed", { user_id: follower_id, type: "following", ...countsForActor });
     io.emit("follow-changed", { user_id: Number(followed_id), type: "followers", ...countsForTarget });
+    io.emit("suggested-update", { changed: true });
 
     return res.status(200).json({ status: "success", message: "You have successfully unfollowed the user.", data: { user_id: followed_id, is_following: false } });
   } catch (err: any) {

@@ -8,6 +8,8 @@ import { createReplyController, getRepliesController } from "../controllers/repl
 import { getProfileController, updateProfileController } from "../controllers/profile-controller";
 import { followUserController, getFollowsController, unfollowUserController } from "../controllers/follow-controller";
 import { getSuggestedUsersController } from "../controllers/suggested-controller";
+import { searchUsersController } from "../controllers/user-controller";
+import { getLikeStatus, likeThread } from "../controllers/likes-controller";
 
 const router = express.Router();
 
@@ -18,13 +20,14 @@ router.post("/thread", authMiddleware, upload.single("image"), createThreadContr
 router.get("/thread/:id", authMiddleware, getThreadDetailController);
 router.post("/reply", authMiddleware, upload.single("image"), createReplyController);
 router.get("/reply", authMiddleware, getRepliesController);
-// router.post("/like", authMiddleware, likeThreadController);
-// router.delete("/like", authMiddleware, unlikeThreadController);
 router.get("/profile", authMiddleware, getProfileController);
 router.patch("/profile", authMiddleware, upload.single("photo_profile"), updateProfileController);
 router.get("/follows", authMiddleware, getFollowsController);
 router.post("/follows", authMiddleware, followUserController);
 router.delete("/follows", authMiddleware, unfollowUserController);
 router.get("/suggested", authMiddleware, getSuggestedUsersController);
+router.get("/users/search", authMiddleware, searchUsersController);
+router.post("/like", authMiddleware, likeThread);
+router.get("/like/status", authMiddleware, getLikeStatus);
 
 export default router;

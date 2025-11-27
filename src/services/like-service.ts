@@ -1,40 +1,43 @@
-// import prisma from "../connection/client";
+import prisma from "../connection/client";
 
-// export async function likeThreadService({ thread_id, user_id }: { thread_id: number; user_id: number }) {
-//   const isLiked = await prisma.likes.findFirst({
-//     where: { thread_id, user_id },
-//   });
+export async function likeThreadService(user_id: number, thread_id: number) {
+  const exist = await prisma.likes.findFirst({
+    where: { user_id, thread_id },
+  });
 
-//   if (isLiked) throw new Error("User already liked this thread");
+  if (exist) return null; // sudah like
 
-//   await prisma.likes.create({
-//     data: {
-//       thread_id,
-//       user_id,
-//     },
-//   });
+  await prisma.likes.create({
+    data: { user_id, thread_id },
+  });
 
-//   const totalLikes = await prisma.likes.count({
-//     where: { thread_id },
-//   });
+  const count = await prisma.likes.count({ where: { thread_id } });
 
-//   return { totalLikes };
-// }
+  return {
+    thread_id,
+    totalLikes: count,
+    is_liked: true,
+  };
+}
 
-// export async function unlikeThreadService({ thread_id, user_id }: { thread_id: number; user_id: number }) {
-//   const isLiked = await prisma.likes.findFirst({
-//     where: { thread_id, user_id },
-//   });
+export async function unlikeThreadService(user_id: number, thread_id: number) {
+  await prisma.likes.deleteMany({
+    where: { user_id, thread_id },
+  });
 
-//   if (!isLiked) throw new Error("User has not liked this thread");
+  const count = await prisma.likes.count({ where: { thread_id } });
 
-//   await prisma.likes.delete({
-//     where: { id: isLiked.id },
-//   });
+  return {
+    thread_id,
+    totalLikes: count,
+    is_liked: false,
+  };
+}
 
-//   const totalLikes = await prisma.likes.count({
-//     where: { thread_id },
-//   });
+export async function isUserLikedThread(user_id: number, thread_id: number) {
+  const exist = await prisma.likes.findFirst({
+    where: { user_id, thread_id },
+  });
 
-//   return { totalLikes };
-// }
+  return !!exist;
+}
